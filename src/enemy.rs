@@ -1,6 +1,6 @@
 use macroquad::math::Vec2;
 
-const LIFE: i32 = 5;
+pub const LIFE: i32 = 5;
 
 pub struct Enemy {
     pub pos: Vec2,

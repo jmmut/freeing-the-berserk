@@ -1,6 +1,6 @@
 mod enemy;
 
-use crate::enemy::Enemy;
+use crate::enemy::{Enemy, LIFE};
 use macroquad::prelude::*;
 
 type SizeInPixels2d = Vec2;
@@ -12,7 +12,7 @@ async fn main() {
     let size = vec2(1.0, 1.0);
     let attack_range = size * 0.75;
     let speed = vec2(0.05, 0.05);
-    let enemies = vec![
+    let mut enemies = vec![
         Enemy::new(vec2(-5.0, -1.0)),
         Enemy::new(vec2(-2.0, -3.0)),
         Enemy::new(vec2(3.0, 1.0)),
@@ -24,6 +24,11 @@ async fn main() {
 
         if is_key_pressed(KeyCode::Escape) {
             break;
+        }
+        if is_key_pressed(KeyCode::R) {
+            for enemy in &mut enemies {
+                enemy.life = LIFE;
+            }
         }
         let mut movement = vec2(0.0, 0.0);
         if is_key_down(KeyCode::W) {
@@ -47,16 +52,20 @@ async fn main() {
         if is_key_pressed(KeyCode::Space) {
             attacked = true;
         }
+        if attacked {
+            for enemy in &mut enemies {
+                let diff = enemy.pos - pos;
+                let range = size.x + attack_range.x;
+                if diff.length_squared() < range * range {
+                    enemy.life = 0;
+                }
+            }
+        }
 
         for enemy in &enemies {
             let character = pos_to_rect(enemy.pos, size, screen, meters_to_pixels);
-            draw_rectangle(
-                character.x,
-                character.y,
-                character.w,
-                character.h,
-                DARKGREEN,
-            );
+            let color = if enemy.life > 0 { DARKGREEN } else { BLACK };
+            draw_rectangle(character.x, character.y, character.w, character.h, color);
         }
         let character = pos_to_rect(pos, size, screen, meters_to_pixels);
         draw_rectangle(character.x, character.y, character.w, character.h, BLUE);
@@ -70,7 +79,7 @@ async fn main() {
     }
 }
 
-fn pos_to_rect(mut pos: Vec2, mut size: Vec2, screen: Vec2, meters_to_pixels: f32) -> Rect {
+fn pos_to_rect(pos: Vec2, size: Vec2, screen: Vec2, meters_to_pixels: f32) -> Rect {
     Rect::new(
         (pos.x - size.x * 0.5) * meters_to_pixels + screen.x * 0.5,
         (pos.y - size.y * 0.5) * meters_to_pixels + screen.y * 0.5,
