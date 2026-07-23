@@ -52,6 +52,13 @@ async fn main() {
         if is_key_pressed(KeyCode::Space) {
             attacked = true;
         }
+        
+        for enemy in &mut enemies {
+            if enemy.life > 0 {
+                let enemy_to_player = pos - enemy.pos;
+                enemy.pos += enemy_to_player.normalize() * speed.x * 0.7;
+            }
+        }
         if attacked {
             for enemy in &mut enemies {
                 let diff = enemy.pos - pos;
