@@ -1,0 +1,20 @@
+[package]
+name = "MY_CRATE_NAME"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+#macroquad = "=0.4.15"
+## 0.4.15 uses a non-working miniquad version
+macroquad = { git = "https://github.com/not-fl3/macroquad.git", rev = "92279a746405949138616714918fc0f120171352" }
+#juquad = { git = "https://github.com/jmmut/juquad.git", tag = "0.20.0" }
+
+#[patch.crates-io]
+## needed if using juquad
+#macroquad = { git = "https://github.com/not-fl3/macroquad.git", rev = "92279a746405949138616714918fc0f120171352" }
+
+[profile.release]
+strip = true
+lto = true

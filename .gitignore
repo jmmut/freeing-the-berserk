@@ -1,0 +1,5 @@
+/target
+.idea/
+MY_CRATE_NAME_html/
+wasm.zip
+
