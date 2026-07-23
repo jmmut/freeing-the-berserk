@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-PROJECT_NAME=MY_CRATE_NAME
+PROJECT_NAME=freeing-the-berserk
 
 # Don't run this manually, run local_build_and_run.sh instead to run the project locally.
 # This script exists just to make sure the CI and the local building does the same.

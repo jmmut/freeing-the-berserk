@@ -16,4 +16,4 @@ set -euo pipefail
 # you can also do `basic-http-server export_html/` for faster iteration time if you are
 # just changing the html/js, but you will need to copy the built_html/pkg to export_html for the
 # webassembly artifact to work
-basic-http-server MY_CRATE_NAME_html/
+basic-http-server freeing-the-berserk_html/

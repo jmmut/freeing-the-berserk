@@ -3,13 +3,6 @@
 version = 4
 
 [[package]]
-name = "MY_CRATE_NAME"
-version = "0.1.0"
-dependencies = [
- "macroquad",
-]
-
-[[package]]
 name = "adler"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -105,6 +98,13 @@ checksum = "2e57e16b3fe8ff4364c0661fdaac543fb38b29ea9bc9c2f45612d90adf931d2b"
 dependencies = [
  "hashbrown",
  "ttf-parser",
+]
+
+[[package]]
+name = "freeing-the-berserk"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
 ]
 
 [[package]]
