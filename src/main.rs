@@ -1,3 +1,6 @@
+mod enemy;
+
+use crate::enemy::Enemy;
 use macroquad::prelude::*;
 
 type SizeInPixels2d = Vec2;
@@ -6,8 +9,14 @@ type SizeInPixels2d = Vec2;
 async fn main() {
     let map_width_meters = 20.0;
     let mut pos = vec2(0.0, 0.0);
-    let mut size = vec2(1.0, 1.0);
-    let mut speed = vec2(0.05, 0.05);
+    let size = vec2(1.0, 1.0);
+    let attack_range = size * 0.75;
+    let speed = vec2(0.05, 0.05);
+    let enemies = vec![
+        Enemy::new(vec2(-5.0, -1.0)),
+        Enemy::new(vec2(-2.0, -3.0)),
+        Enemy::new(vec2(3.0, 1.0)),
+    ];
     loop {
         let screen = vec2(screen_width(), screen_height());
         let meters_to_pixels = screen.x / map_width_meters;
@@ -33,26 +42,43 @@ async fn main() {
             movement = movement.normalize() * speed.x;
             pos += movement;
         }
-        
+
         let mut attacked = false;
         if is_key_pressed(KeyCode::Space) {
             attacked = true;
         }
-        let character = Rect::new(
-            (pos.x - size.x * 0.5) * meters_to_pixels + screen.x * 0.5,
-            (pos.y - size.y * 0.5) * meters_to_pixels + screen.y * 0.5,
-            size.x * meters_to_pixels,
-            size.y * meters_to_pixels,
-        );
-        draw_rectangle(character.x, character.y, character.w, character.h, SKYBLUE);
+
+        for enemy in &enemies {
+            let character = pos_to_rect(enemy.pos, size, screen, meters_to_pixels);
+            draw_rectangle(
+                character.x,
+                character.y,
+                character.w,
+                character.h,
+                DARKGREEN,
+            );
+        }
+        let character = pos_to_rect(pos, size, screen, meters_to_pixels);
+        draw_rectangle(character.x, character.y, character.w, character.h, BLUE);
+
         if attacked {
-            let attack = add_contour(character, size * 0.75 * meters_to_pixels);
+            let attack = add_contour(character, attack_range * meters_to_pixels);
             draw_rectangle_lines(attack.x, attack.y, attack.w, attack.h, 2.0, BLACK);
         }
 
         next_frame().await
     }
 }
+
+fn pos_to_rect(mut pos: Vec2, mut size: Vec2, screen: Vec2, meters_to_pixels: f32) -> Rect {
+    Rect::new(
+        (pos.x - size.x * 0.5) * meters_to_pixels + screen.x * 0.5,
+        (pos.y - size.y * 0.5) * meters_to_pixels + screen.y * 0.5,
+        size.x * meters_to_pixels,
+        size.y * meters_to_pixels,
+    )
+}
+
 pub fn window_conf() -> Conf {
     Conf {
         window_title: "Freeing the berserk".to_string(),
