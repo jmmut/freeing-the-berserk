@@ -2,18 +2,22 @@ use macroquad::prelude::*;
 
 #[macroquad::main("freeing-the-berserk")]
 async fn main() {
+    let map_width_meters = 20.0;
+    let mut pos = vec2(0.0, 0.0);
+    let mut size = vec2(1.0, 1.0);
     loop {
+        let screen = vec2(screen_width(), screen_height());
+        let meters_to_pixels = screen.x / map_width_meters;
         clear_background(LIGHTGRAY);
 
         if is_key_pressed(KeyCode::Escape) {
             break;
         }
-        draw_line(40.0, 40.0, 100.0, 200.0, 15.0, BLUE);
-        draw_rectangle(screen_width() / 2.0 - 60.0, 100.0, 120.0, 60.0, GREEN);
-        draw_circle(screen_width() - 30.0, screen_height() - 30.0, 15.0, YELLOW);
-
-        draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
+        draw_rectangle((pos.x - size.x * 0.5) * meters_to_pixels + screen.x *0.5, (pos.y - size.y * 0.5) * meters_to_pixels + screen.y * 0.5, size.x * meters_to_pixels, size.y * meters_to_pixels, SKYBLUE);
 
         next_frame().await
     }
 }
+
+
+
