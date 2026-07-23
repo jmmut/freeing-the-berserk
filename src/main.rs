@@ -2,7 +2,7 @@ use macroquad::prelude::*;
 
 type SizeInPixels2d = Vec2;
 
-#[macroquad::main("freeing-the-berserk")]
+#[macroquad::main(window_conf)]
 async fn main() {
     let map_width_meters = 20.0;
     let mut pos = vec2(0.0, 0.0);
@@ -51,6 +51,15 @@ async fn main() {
         }
 
         next_frame().await
+    }
+}
+pub fn window_conf() -> Conf {
+    Conf {
+        window_title: "Freeing the berserk".to_string(),
+        window_width: 800,
+        window_height: 600,
+        high_dpi: true,
+        ..Default::default()
     }
 }
 pub fn add_contour(rect: Rect, size: SizeInPixels2d) -> Rect {
