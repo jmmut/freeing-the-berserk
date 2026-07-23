@@ -1,5 +1,7 @@
 use macroquad::prelude::*;
 
+type SizeInPixels2d = Vec2;
+
 #[macroquad::main("freeing-the-berserk")]
 async fn main() {
     let map_width_meters = 20.0;
@@ -14,26 +16,56 @@ async fn main() {
         if is_key_pressed(KeyCode::Escape) {
             break;
         }
+        let mut movement = vec2(0.0, 0.0);
         if is_key_down(KeyCode::W) {
-            pos.y -= speed.y;
+            movement.y -= speed.y;
         }
         if is_key_down(KeyCode::S) {
-            pos.y += speed.y;
+            movement.y += speed.y;
         }
         if is_key_down(KeyCode::A) {
-            pos.x -= speed.x;
+            movement.x -= speed.x;
         }
         if is_key_down(KeyCode::D) {
-            pos.x += speed.x;
+            movement.x += speed.x;
         }
-        draw_rectangle(
+        if movement != vec2(0.0, 0.0) {
+            movement = movement.normalize() * speed.x;
+            pos += movement;
+        }
+        
+        let mut attacked = false;
+        if is_key_pressed(KeyCode::Space) {
+            attacked = true;
+        }
+        let character = Rect::new(
             (pos.x - size.x * 0.5) * meters_to_pixels + screen.x * 0.5,
             (pos.y - size.y * 0.5) * meters_to_pixels + screen.y * 0.5,
             size.x * meters_to_pixels,
             size.y * meters_to_pixels,
-            SKYBLUE,
         );
+        draw_rectangle(character.x, character.y, character.w, character.h, SKYBLUE);
+        if attacked {
+            let attack = add_contour(character, size * 0.75 * meters_to_pixels);
+            draw_rectangle_lines(attack.x, attack.y, attack.w, attack.h, 2.0, BLACK);
+        }
 
         next_frame().await
     }
+}
+pub fn add_contour(rect: Rect, size: SizeInPixels2d) -> Rect {
+    let mut new_position = rect.point() - size;
+    let mut new_size = rect.size() + size * 2.0;
+    let center = rect.center();
+    for i in 0..1 {
+        if new_size[i] < 0.0 {
+            // size reduced so much that the rect flips. collapse rather than invert
+            new_position[i] = center[i];
+            new_size[i] = 0.0;
+        }
+    }
+    to_rect(new_position, new_size)
+}
+pub fn to_rect(pos: Vec2, size: Vec2) -> Rect {
+    Rect::new(pos.x, pos.y, size.x, size.y)
 }
