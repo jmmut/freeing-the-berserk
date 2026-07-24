@@ -115,12 +115,13 @@ async fn fallible_main() -> AnyResult<()> {
         ///////////// rendering
 
         if life <= 0 {
-            draw_text(
-                "You died. Press R to revive.",
+            text("You died. Press R to revive.", 10.0, 10.0 + FONT_SIZE);
+        }
+        if enemies.iter().all(|e| !e.is_alive()) {
+            text(
+                "You won. Press R to revive enemies.",
                 10.0,
                 10.0 + FONT_SIZE,
-                FONT_SIZE,
-                BLACK,
             );
         }
 
@@ -186,6 +187,10 @@ async fn fallible_main() -> AnyResult<()> {
         next_frame().await;
     }
     Ok(())
+}
+
+fn text(text: &str, x: f32, y: f32) {
+    draw_text(text, x, y, FONT_SIZE, BLACK);
 }
 
 fn is_in_attack_range(pos_1: Vec2, pos_2: Vec2, size: Vec2, attack_range: Vec2) -> bool {
