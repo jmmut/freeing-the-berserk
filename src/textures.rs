@@ -35,13 +35,14 @@ impl Textures {
         Ok(Self {
             player: Animations {
                 idle: vec![load_single("chara-sprites/chara0-idle").await?],
-                moving: vec![],
-                attacking: vec![],
+                moving: load("chara-sprites/chara0-walking", 2).await?,
+                attacking: vec![load_single("chara-sprites/chara0-idle").await?], // TODO
             },
             enemies: Animations {
-                idle: vec![load_single("chara-sprites/chara0-idle").await?],
-                moving: vec![],
-                attacking: vec![],
+                idle: vec![load_single("chara-sprites/chara1-idle").await?], // TODO
+                // moving: load("chara-sprites/chara0-walking", 2).await?, // TODO
+                moving: vec![load_single("chara-sprites/chara1-idle").await?], // TODO
+                attacking: vec![load_single("chara-sprites/chara1-idle").await?], // TODO
             },
         })
     }

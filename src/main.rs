@@ -29,6 +29,7 @@ pub fn window_conf() -> Conf {
 async fn fallible_main() -> AnyResult<()> {
     let map_width_meters = 8.0;
     let mut pos = vec2(0.0, 0.0);
+    let mut looking_right = true;
     let size = vec2(1.0, 1.0);
     let attack_range = size * 0.5;
     let speed = vec2(0.03, 0.03);
@@ -57,7 +58,7 @@ async fn fallible_main() -> AnyResult<()> {
                 enemy.life = LIFE;
             }
         }
-        let mut movement = vec2(0.0, 0.0);
+        let mut movement = Vec2::ZERO;
         if is_key_down(KeyCode::W) {
             movement.y -= speed.y;
         }
@@ -79,9 +80,10 @@ async fn fallible_main() -> AnyResult<()> {
         /////////////
         animator.tick(delta_s);
 
-        if movement != vec2(0.0, 0.0) {
+        if movement != Vec2::ZERO {
             movement = movement.normalize() * speed.x;
             pos += movement;
+            looking_right = movement.x > 0.0;
         }
         for enemy in &mut enemies {
             if enemy.life > 0 {
@@ -106,31 +108,30 @@ async fn fallible_main() -> AnyResult<()> {
             let color = if enemy.life > 0 { DARKGREEN } else { BLACK };
 
             // draw_rectangle(character.x, character.y, character.w, character.h, color);
-            let texture = animator.choose_texture(&textures.enemies.idle);
-            draw_texture_ex(
-                texture,
-                character.x,
-                character.y,
-                WHITE,
-                DrawTextureParams {
-                    dest_size: Some(character.size()),
-                    ..Default::default()
-                },
-            );
-        }
-        let character = pos_to_rect(pos, size, screen, meters_to_pixels);
-        // draw_rectangle(character.x, character.y, character.w, character.h, BLUE);
-        let texture = animator.choose_texture(&textures.player.idle);
-        draw_texture_ex(
-            texture,
-            character.x,
-            character.y,
-            WHITE,
-            DrawTextureParams {
+            let texture = animator.choose_texture(&textures.enemies.moving);
+            let params = DrawTextureParams {
                 dest_size: Some(character.size()),
                 ..Default::default()
-            },
-        );
+            };
+            draw_texture_ex(texture, character.x, character.y, WHITE, params);
+        }
+        
+        let character = pos_to_rect(pos, size, screen, meters_to_pixels);
+        // draw_rectangle(character.x, character.y, character.w, character.h, BLUE);
+        let animation = if attacked {
+            &textures.player.attacking
+        } else if movement != Vec2::ZERO {
+            &textures.player.moving
+        } else {
+            &textures.player.idle
+        };
+        let texture = animator.choose_texture(animation);
+        let params = DrawTextureParams {
+            dest_size: Some(character.size()),
+            flip_x: !looking_right,
+            ..Default::default()
+        };
+        draw_texture_ex(texture, character.x, character.y, WHITE, params);
 
         if attacked {
             let attack = add_contour(character, attack_range * meters_to_pixels);
