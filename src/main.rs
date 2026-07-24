@@ -1,23 +1,50 @@
 mod enemy;
+mod textures;
 
 use crate::enemy::{Enemy, LIFE};
+use crate::textures::{Animator, Textures};
+use freeing_the_berserk::AnyResult;
+use macroquad::miniquad::date::now;
 use macroquad::prelude::*;
 
 type SizeInPixels2d = Vec2;
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let map_width_meters = 20.0;
+    if let Err(e) = fallible_main().await {
+        eprintln!("Error: {}", e);
+    }
+}
+
+pub fn window_conf() -> Conf {
+    Conf {
+        window_title: "Freeing the berserk".to_string(),
+        window_width: 800,
+        window_height: 600,
+        high_dpi: true,
+        ..Default::default()
+    }
+}
+
+async fn fallible_main() -> AnyResult<()> {
+    let map_width_meters = 8.0;
     let mut pos = vec2(0.0, 0.0);
     let size = vec2(1.0, 1.0);
-    let attack_range = size * 0.75;
-    let speed = vec2(0.05, 0.05);
+    let attack_range = size * 0.5;
+    let speed = vec2(0.03, 0.03);
     let mut enemies = vec![
         Enemy::new(vec2(-5.0, -1.0)),
         Enemy::new(vec2(-2.0, -3.0)),
         Enemy::new(vec2(3.0, 1.0)),
     ];
+    let textures = Textures::load().await?;
+    let mut animator = Animator::new();
+    let mut previous_frame_time = now();
     loop {
+        let this_frame_time = now();
+        let delta_s = this_frame_time - previous_frame_time;
+        previous_frame_time = this_frame_time;
+
         let screen = vec2(screen_width(), screen_height());
         let meters_to_pixels = screen.x / map_width_meters;
         clear_background(LIGHTGRAY);
@@ -43,16 +70,19 @@ async fn main() {
         if is_key_down(KeyCode::D) {
             movement.x += speed.x;
         }
-        if movement != vec2(0.0, 0.0) {
-            movement = movement.normalize() * speed.x;
-            pos += movement;
-        }
 
         let mut attacked = false;
         if is_key_pressed(KeyCode::Space) {
             attacked = true;
         }
-        
+
+        /////////////
+        animator.tick(delta_s);
+
+        if movement != vec2(0.0, 0.0) {
+            movement = movement.normalize() * speed.x;
+            pos += movement;
+        }
         for enemy in &mut enemies {
             if enemy.life > 0 {
                 let enemy_to_player = pos - enemy.pos;
@@ -69,21 +99,47 @@ async fn main() {
             }
         }
 
+        /////////////
+
         for enemy in &enemies {
             let character = pos_to_rect(enemy.pos, size, screen, meters_to_pixels);
             let color = if enemy.life > 0 { DARKGREEN } else { BLACK };
-            draw_rectangle(character.x, character.y, character.w, character.h, color);
+
+            // draw_rectangle(character.x, character.y, character.w, character.h, color);
+            let texture = animator.choose_texture(&textures.enemies.idle);
+            draw_texture_ex(
+                texture,
+                character.x,
+                character.y,
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(character.size()),
+                    ..Default::default()
+                },
+            );
         }
         let character = pos_to_rect(pos, size, screen, meters_to_pixels);
-        draw_rectangle(character.x, character.y, character.w, character.h, BLUE);
+        // draw_rectangle(character.x, character.y, character.w, character.h, BLUE);
+        let texture = animator.choose_texture(&textures.player.idle);
+        draw_texture_ex(
+            texture,
+            character.x,
+            character.y,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(character.size()),
+                ..Default::default()
+            },
+        );
 
         if attacked {
             let attack = add_contour(character, attack_range * meters_to_pixels);
             draw_rectangle_lines(attack.x, attack.y, attack.w, attack.h, 2.0, BLACK);
         }
 
-        next_frame().await
+        next_frame().await;
     }
+    Ok(())
 }
 
 fn pos_to_rect(pos: Vec2, size: Vec2, screen: Vec2, meters_to_pixels: f32) -> Rect {
@@ -95,15 +151,6 @@ fn pos_to_rect(pos: Vec2, size: Vec2, screen: Vec2, meters_to_pixels: f32) -> Re
     )
 }
 
-pub fn window_conf() -> Conf {
-    Conf {
-        window_title: "Freeing the berserk".to_string(),
-        window_width: 800,
-        window_height: 600,
-        high_dpi: true,
-        ..Default::default()
-    }
-}
 pub fn add_contour(rect: Rect, size: SizeInPixels2d) -> Rect {
     let mut new_position = rect.point() - size;
     let mut new_size = rect.size() + size * 2.0;
