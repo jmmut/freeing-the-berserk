@@ -10,6 +10,7 @@ use macroquad::prelude::*;
 type SizeInPixels2d = Vec2;
 
 pub const PLAYER_LIFE: i32 = 3;
+pub const FONT_SIZE: f32 = 16.0;
 
 #[macroquad::main(window_conf)]
 async fn main() {
@@ -78,16 +79,16 @@ async fn fallible_main() -> AnyResult<()> {
             movement.x += speed.x;
         }
 
-        let mut attacked = false;
+        let mut attacking = false;
         if is_key_pressed(KeyCode::Space) {
-            attacked = true;
+            attacking = true;
         }
 
         ///////////// logic
 
         animator.tick(delta_s);
 
-        if movement != Vec2::ZERO {
+        if movement != Vec2::ZERO && life > 0 {
             movement = movement.normalize() * speed.x;
             pos += movement;
             looking_right = movement.x > 0.0;
@@ -96,22 +97,32 @@ async fn fallible_main() -> AnyResult<()> {
             let enemy_to_player = pos - enemy.pos;
             let in_attack_range = is_in_attack_range(pos, enemy.pos, size, attack_range);
             enemy.tick(delta_s, in_attack_range);
-            if enemy.is_alive() && enemy.is_preparing().is_none() {
+            if enemy.is_alive() && enemy.is_preparing().is_none() && !in_attack_range {
                 enemy.pos += enemy_to_player.normalize() * speed.x * 0.7;
             }
             if in_attack_range && enemy.is_attacking() {
-                life -= 1;
+                life = 0.max(life - 1);
             }
         }
-        if attacked {
+        if attacking {
             for enemy in &mut enemies {
                 if is_in_attack_range(pos, enemy.pos, size, attack_range) {
-                    enemy.life -= 1;
+                    enemy.life = 0.max(enemy.life - 1);
                 }
             }
         }
 
         ///////////// rendering
+
+        if life <= 0 {
+            draw_text(
+                "You died. Press R to revive.",
+                10.0,
+                10.0 + FONT_SIZE,
+                FONT_SIZE,
+                BLACK,
+            );
+        }
 
         for enemy in &enemies {
             let character = pos_to_rect(enemy.pos, size, screen, meters_to_pixels);
@@ -138,9 +149,9 @@ async fn fallible_main() -> AnyResult<()> {
 
         let character = pos_to_rect(pos, size, screen, meters_to_pixels);
         // draw_rectangle(character.x, character.y, character.w, character.h, BLUE);
-        let animation = if attacked {
+        let animation = if life > 0 && attacking {
             &textures.player.attacking
-        } else if movement != Vec2::ZERO {
+        } else if life > 0 && movement != Vec2::ZERO {
             &textures.player.moving
         } else {
             &textures.player.idle
@@ -151,9 +162,10 @@ async fn fallible_main() -> AnyResult<()> {
             flip_x: !looking_right,
             ..Default::default()
         };
-        draw_texture_ex(texture, character.x, character.y, WHITE, params);
+        let color = if life > 0 { WHITE } else { RED };
+        draw_texture_ex(texture, character.x, character.y, color, params);
 
-        if attacked {
+        if attacking {
             let attack = add_contour(character, attack_range * meters_to_pixels);
             draw_rectangle_lines(attack.x, attack.y, attack.w, attack.h, 2.0, BLACK);
         }
