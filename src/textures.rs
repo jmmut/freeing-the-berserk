@@ -17,6 +17,7 @@ pub struct Animator {
 }
 
 impl Textures {
+    #[allow(unused)]
     pub fn new_empty() -> Self {
         Self {
             player: Animations {
