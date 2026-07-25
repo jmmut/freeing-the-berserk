@@ -130,12 +130,14 @@ async fn fallible_main() -> AnyResult<()> {
         }
 
         enemies.sort_by(|a, b| {
-            if a.pos.y < b.pos.y {
+            let diff = a.pos.y - b.pos.y;
+            const EPSILON: f32 = 0.1;
+            if diff < -EPSILON {
                 Ordering::Less
-            } else if a.pos.y > b.pos.y {
+            } else if diff > EPSILON {
                 Ordering::Greater
             } else {
-                Ordering::Equal
+                a.life.cmp(&b.life)
             }
         });
         for enemy in &enemies {
