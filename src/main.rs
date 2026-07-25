@@ -231,6 +231,18 @@ fn draw_enemy(
         let attack = add_contour(character, attack_range * meters_to_pixels);
         draw_rectangle_lines(attack.x, attack.y, attack.w, attack.h, 10.0, BLACK);
     }
+    let size_pixels = size * meters_to_pixels * 0.1;
+    let pad = size_pixels * 0.5;
+    for i in 0..ENEMY_LIFE {
+        let x = character.x + character.w * 0.5 - ENEMY_LIFE as f32 * 0.5 * (pad.x + size_pixels.x) + pad.x + i as f32 * (pad.x + size_pixels.x) ;
+        let y = character.y - pad.y * 4.0;
+        let w = size_pixels.x;
+        let h = size_pixels.y;
+        if i < enemy.life {
+            draw_rectangle(x, y, w, h, RED);
+        }
+        draw_rectangle_lines(x, y, w, h, 2.0, BLACK);
+    }
 }
 
 fn draw_player(

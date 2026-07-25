@@ -1,6 +1,6 @@
 use macroquad::math::Vec2;
 
-pub const ENEMY_LIFE: i32 = 1;
+pub const ENEMY_LIFE: i32 = 3;
 pub const PREPARATION_S: f32 = 1.0;
 
 pub struct Enemy {
