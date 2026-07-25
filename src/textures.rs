@@ -1,4 +1,4 @@
-use freeing_the_berserk::AnyResult;
+use crate::AnyResult;
 use macroquad::prelude::{load_texture, Texture2D};
 
 pub struct Textures {

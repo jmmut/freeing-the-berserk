@@ -1,3 +1,7 @@
+pub mod enemy;
+pub mod player;
+pub mod textures;
+
 use macroquad::math::{Rect, Vec2};
 use std::error::Error;
 

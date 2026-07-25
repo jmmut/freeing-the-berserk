@@ -1,13 +1,10 @@
-mod enemy;
-mod textures;
-
-use crate::enemy::{Enemy, ENEMY_LIFE};
-use crate::textures::{Animator, Textures};
+use freeing_the_berserk::enemy::{Enemy, ENEMY_LIFE};
+use freeing_the_berserk::player::{hurt, Player, PLAYER_LIFE};
+use freeing_the_berserk::textures::{Animator, Textures};
 use freeing_the_berserk::{add_contour, pos_to_rect, AnyResult};
 use macroquad::miniquad::date::now;
 use macroquad::prelude::*;
 
-pub const PLAYER_LIFE: i32 = 3;
 pub const FONT_SIZE: f32 = 16.0;
 
 #[macroquad::main(window_conf)]
@@ -29,9 +26,12 @@ pub fn window_conf() -> Conf {
 
 async fn fallible_main() -> AnyResult<()> {
     let map_width_meters = 8.0;
-    let mut pos = vec2(0.0, 0.0);
-    let mut looking_right = true;
-    let mut life = PLAYER_LIFE;
+    let mut player = Player {
+        pos: vec2(0.0, 0.0),
+        looking_right: true,
+        life: PLAYER_LIFE,
+        attacking: false,
+    };
     let size = vec2(1.0, 1.0);
     let attack_range = size * 0.2;
     let speed = vec2(0.03, 0.03);
@@ -61,7 +61,7 @@ async fn fallible_main() -> AnyResult<()> {
             for enemy in &mut enemies {
                 enemy.life = ENEMY_LIFE;
             }
-            life = PLAYER_LIFE;
+            player.life = PLAYER_LIFE;
         }
         let mut movement = Vec2::ZERO;
         if is_key_down(KeyCode::W) {
@@ -77,42 +77,42 @@ async fn fallible_main() -> AnyResult<()> {
             movement.x += speed.x;
         }
 
-        let mut attacking = false;
+        player.attacking = false;
         if is_key_pressed(KeyCode::Space) {
-            attacking = true;
+            player.attacking = true;
         }
 
         ///////////// logic
 
         animator.tick(delta_s);
 
-        if movement != Vec2::ZERO && life > 0 {
+        if movement != Vec2::ZERO && player.is_alive() {
             movement = movement.normalize() * speed.x;
-            pos += movement;
-            looking_right = movement.x > 0.0;
+            player.pos += movement;
+            player.looking_right = movement.x > 0.0;
         }
         for enemy in &mut enemies {
-            let enemy_to_player = pos - enemy.pos;
-            let in_attack_range = is_in_attack_range(pos, enemy.pos, size, attack_range);
+            let enemy_to_player = player.pos - enemy.pos;
+            let in_attack_range = is_in_attack_range(player.pos, enemy.pos, size, attack_range);
             enemy.tick(delta_s, in_attack_range);
             if enemy.is_alive() && enemy.is_preparing().is_none() && !in_attack_range {
                 enemy.pos += enemy_to_player.normalize() * speed.x * 0.7;
             }
             if in_attack_range && enemy.is_attacking() {
-                life = 0.max(life - 1);
+                hurt(&mut player.life);
             }
         }
-        if attacking {
+        if player.attacking {
             for enemy in &mut enemies {
-                if is_in_attack_range(pos, enemy.pos, size, attack_range) {
-                    enemy.life = 0.max(enemy.life - 1);
+                if is_in_attack_range(player.pos, enemy.pos, size, attack_range) {
+                    hurt(&mut enemy.life);
                 }
             }
         }
 
         ///////////// rendering
 
-        if life <= 0 {
+        if !player.is_alive() {
             text("You died. Press R to revive.", 10.0, 10.0 + FONT_SIZE);
         }
         if enemies.iter().all(|e| !e.is_alive()) {
@@ -136,24 +136,21 @@ async fn fallible_main() -> AnyResult<()> {
         }
 
         let character = draw_player(
-            pos,
-            looking_right,
-            life,
+            &player,
             size,
             &textures,
             &animator,
             screen,
             meters_to_pixels,
             movement,
-            attacking,
         );
 
-        if attacking {
+        if player.attacking {
             let attack = add_contour(character, attack_range * meters_to_pixels);
             draw_rectangle_lines(attack.x, attack.y, attack.w, attack.h, 2.0, BLACK);
         }
 
-        draw_life(life, size, meters_to_pixels, screen);
+        draw_life(player.life, size, meters_to_pixels, screen);
 
         next_frame().await;
     }
@@ -192,22 +189,19 @@ fn draw_enemy(
 }
 
 fn draw_player(
-    pos: Vec2,
-    looking_right: bool,
-    life: i32,
+    player: &Player,
     size: Vec2,
     textures: &Textures,
     animator: &Animator,
     screen: Vec2,
     meters_to_pixels: f32,
     movement: Vec2,
-    attacking: bool,
 ) -> Rect {
-    let character = pos_to_rect(pos, size, screen, meters_to_pixels);
+    let character = pos_to_rect(player.pos, size, screen, meters_to_pixels);
     // draw_rectangle(character.x, character.y, character.w, character.h, BLUE);
-    let animation = if life > 0 && attacking {
+    let animation = if player.is_alive() && player.attacking {
         &textures.player.attacking
-    } else if life > 0 && movement != Vec2::ZERO {
+    } else if player.is_alive() && movement != Vec2::ZERO {
         &textures.player.moving
     } else {
         &textures.player.idle
@@ -215,10 +209,10 @@ fn draw_player(
     let texture = animator.choose_texture(animation);
     let params = DrawTextureParams {
         dest_size: Some(character.size()),
-        flip_x: !looking_right,
+        flip_x: !player.looking_right,
         ..Default::default()
     };
-    let color = if life > 0 { WHITE } else { RED };
+    let color = if player.is_alive() { WHITE } else { RED };
     draw_texture_ex(texture, character.x, character.y, color, params);
     character
 }
