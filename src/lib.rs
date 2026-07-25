@@ -1,9 +1,10 @@
+pub mod action;
 pub mod enemy;
-mod interpolation;
+pub mod interpolation;
 pub mod player;
 pub mod textures;
 
-use macroquad::math::{vec2, Rect, Vec2};
+use macroquad::math::{Rect, Vec2};
 use std::error::Error;
 
 pub type AnyResult<T> = Result<T, Box<dyn Error>>;
