@@ -1,6 +1,5 @@
-use crate::interpolation;
-use crate::interpolation::{smooth, Interpolation};
 use macroquad::math::{vec2, Vec2};
+use crate::interpolation::Interpolation;
 
 pub const PLAYER_LIFE: i32 = 3;
 pub const DASH_DURATION: f32 = 0.25;
