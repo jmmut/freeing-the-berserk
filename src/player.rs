@@ -1,5 +1,5 @@
 use crate::interpolation;
-use crate::interpolation::smooth;
+use crate::interpolation::{smooth, Interpolation};
 use macroquad::math::{vec2, Vec2};
 
 pub const PLAYER_LIFE: i32 = 3;
@@ -32,7 +32,7 @@ impl Player {
         }
     }
     pub fn try_dash(&mut self) {
-        if self.is_alive() {
+        if self.is_alive() && !self.is_dashing() {
             self.dashing = true;
             self.dash_start_s_ago = Some(0.0);
         }
@@ -56,8 +56,8 @@ impl Player {
             if dash_start_s_ago < DASH_DURATION {
                 let t = dash_start_s_ago / DASH_DURATION;
                 self.pos += movement
-                    * (t - interpolation::inverse_quadratic(t))
-                    * (10.0 + 10.0 * self.berserk_ratio());
+                    * (Interpolation::new(1.0, 0.0).at(t))
+                    * (1.5 * (1.0 + self.berserk_ratio()));
             } else {
                 self.dash_start_s_ago = None;
                 self.dashing = false;

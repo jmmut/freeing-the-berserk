@@ -8,5 +8,4 @@ Clone this repo, then [Install rust](https://www.rust-lang.org/tools/install), t
 
 - [/] make enemies avoid each other to avoid collapsing in the same position.
 - [ ] parry
-- [ ] dash
 
