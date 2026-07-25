@@ -1,7 +1,7 @@
 use freeing_the_berserk::enemy::{Enemy, ENEMY_LIFE};
 use freeing_the_berserk::player::{hurt, Player, PLAYER_LIFE};
 use freeing_the_berserk::textures::{Animator, Textures};
-use freeing_the_berserk::{add_contour, pos_to_rect, AnyResult};
+use freeing_the_berserk::{add_contour, pixel_to_pos, pos_to_rect, AnyResult};
 use macroquad::miniquad::date::now;
 use macroquad::prelude::*;
 use std::cmp::Ordering;
@@ -94,6 +94,10 @@ async fn fallible_main() -> AnyResult<()> {
                 player.dash(movement);
             }
         }
+        let top_left = pixel_to_pos(size * meters_to_pixels, screen, meters_to_pixels);
+        let bottom_right = pixel_to_pos(screen - size * meters_to_pixels, screen, meters_to_pixels);
+        player.pos = player.pos.clamp(top_left, bottom_right);
+
         for i in 0..enemies.len() {
             let next_i = (i + 1) % enemies.len();
             let enemy_to_player = player.pos - enemies[i].pos;
@@ -121,16 +125,17 @@ async fn fallible_main() -> AnyResult<()> {
 
         ///////////// rendering
 
-        if !player.is_alive() {
-            text("You died. Press R to revive.", 10.0, 10.0 + FONT_SIZE);
-        }
-        if enemies.iter().all(|e| !e.is_alive()) {
-            text(
-                "You won. Press R to revive enemies.",
-                10.0,
-                10.0 + FONT_SIZE,
-            );
-        }
+        let top_left = size * 0.5 * meters_to_pixels;
+        let arena_size = screen - 2.0 * top_left;
+        let arena_color = Color::new(1.00, 0.63, 0.00, 0.3);
+        draw_rectangle_lines(
+            top_left.x,
+            top_left.y,
+            arena_size.x,
+            arena_size.y,
+            10.0,
+            arena_color,
+        );
 
         enemies.sort_by(|a, b| {
             let diff = a.pos.y - b.pos.y;
@@ -197,6 +202,17 @@ async fn fallible_main() -> AnyResult<()> {
 
         draw_life(player.life, size, meters_to_pixels, screen);
 
+        if !player.is_alive() {
+            text("You died. Press R to revive.", 10.0, 10.0 + FONT_SIZE);
+        }
+        if enemies.iter().all(|e| !e.is_alive()) {
+            text(
+                "You won. Press R to revive enemies.",
+                10.0,
+                10.0 + FONT_SIZE,
+            );
+        }
+
         next_frame().await;
     }
     Ok(())
@@ -234,7 +250,9 @@ fn draw_enemy(
     let size_pixels = size * meters_to_pixels * 0.1;
     let pad = size_pixels * 0.5;
     for i in 0..ENEMY_LIFE {
-        let x = character.x + character.w * 0.5 - ENEMY_LIFE as f32 * 0.5 * (pad.x + size_pixels.x) + pad.x + i as f32 * (pad.x + size_pixels.x) ;
+        let x = character.x + character.w * 0.5 - ENEMY_LIFE as f32 * 0.5 * (pad.x + size_pixels.x)
+            + pad.x
+            + i as f32 * (pad.x + size_pixels.x);
         let y = character.y - pad.y * 4.0;
         let w = size_pixels.x;
         let h = size_pixels.y;
