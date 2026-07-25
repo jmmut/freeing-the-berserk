@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use freeing_the_berserk::enemy::{Enemy, ENEMY_LIFE};
 use freeing_the_berserk::player::{hurt, Player, PLAYER_LIFE};
 use freeing_the_berserk::textures::{Animator, Textures};
@@ -128,16 +129,27 @@ async fn fallible_main() -> AnyResult<()> {
             );
         }
 
+        enemies.sort_by(|a, b| {
+            if a.pos.y < b.pos.y {
+                Ordering::Less
+            } else if a.pos.y > b.pos.y {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }
+        });
         for enemy in &enemies {
-            draw_enemy(
-                enemy,
-                size,
-                attack_range,
-                &textures,
-                &animator,
-                screen,
-                meters_to_pixels,
-            );
+            if enemy.pos.y <= player.pos.y {
+                draw_enemy(
+                    enemy,
+                    size,
+                    attack_range,
+                    &textures,
+                    &animator,
+                    screen,
+                    meters_to_pixels,
+                );
+            }
         }
 
         let character = draw_player(
@@ -149,6 +161,19 @@ async fn fallible_main() -> AnyResult<()> {
             meters_to_pixels,
             movement,
         );
+        for enemy in &enemies {
+            if enemy.pos.y > player.pos.y {
+                draw_enemy(
+                    enemy,
+                    size,
+                    attack_range,
+                    &textures,
+                    &animator,
+                    screen,
+                    meters_to_pixels,
+                );
+            }
+        }
 
         if player.attacking {
             let attack = add_contour(character, attack_range * meters_to_pixels);
