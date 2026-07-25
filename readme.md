@@ -6,5 +6,5 @@ Clone this repo, then [Install rust](https://www.rust-lang.org/tools/install), t
 
 ## Future improvements
 
-- make enemies avoid each other to avoid collapsing in the same position.
-- draw in z order, not list order.
+- [/] make enemies avoid each other to avoid collapsing in the same position.
+- [ ] draw in z order, not list order.

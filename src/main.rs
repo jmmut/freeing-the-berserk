@@ -91,14 +91,19 @@ async fn fallible_main() -> AnyResult<()> {
             player.pos += movement;
             player.looking_right = movement.x > 0.0;
         }
-        for enemy in &mut enemies {
-            let enemy_to_player = player.pos - enemy.pos;
-            let in_attack_range = is_in_attack_range(player.pos, enemy.pos, size, attack_range);
-            enemy.tick(delta_s, in_attack_range);
-            if enemy.is_alive() && enemy.is_preparing().is_none() && !in_attack_range {
-                enemy.pos += enemy_to_player.normalize() * speed.x * 0.7;
+        for i in 0..enemies.len() {
+            let next_i = (i + 1) % enemies.len();
+            let enemy_to_player = player.pos - enemies[i].pos;
+            let in_attack_range = is_in_attack_range(player.pos, enemies[i].pos, size, attack_range);
+            enemies[i].tick(delta_s, in_attack_range);
+            let enemy_to_another = enemies[next_i].pos - enemies[i].pos;
+            if enemies[i].is_alive() && enemies[i].is_preparing().is_none() && !in_attack_range {
+                enemies[i].pos -= enemy_to_another.normalize() * speed.x * 0.1;
+            }        
+            if enemies[i].is_alive() && enemies[i].is_preparing().is_none() && !in_attack_range {
+                enemies[i].pos += enemy_to_player.normalize() * speed.x * 0.7;
             }
-            if in_attack_range && enemy.is_attacking() {
+            if in_attack_range && enemies[i].is_attacking() {
                 hurt(&mut player.life);
             }
         }
