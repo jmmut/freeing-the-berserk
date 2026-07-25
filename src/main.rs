@@ -3,11 +3,9 @@ mod textures;
 
 use crate::enemy::{Enemy, ENEMY_LIFE};
 use crate::textures::{Animator, Textures};
-use freeing_the_berserk::AnyResult;
+use freeing_the_berserk::{add_contour, pos_to_rect, AnyResult};
 use macroquad::miniquad::date::now;
 use macroquad::prelude::*;
-
-type SizeInPixels2d = Vec2;
 
 pub const PLAYER_LIFE: i32 = 3;
 pub const FONT_SIZE: f32 = 16.0;
@@ -126,67 +124,118 @@ async fn fallible_main() -> AnyResult<()> {
         }
 
         for enemy in &enemies {
-            let character = pos_to_rect(enemy.pos, size, screen, meters_to_pixels);
-            let color = if enemy.is_alive() { WHITE } else { RED };
-
-            // draw_rectangle(character.x, character.y, character.w, character.h, color);
-            let texture = animator.choose_texture(&textures.enemies.moving);
-            let params = DrawTextureParams {
-                dest_size: Some(character.size()),
-                ..Default::default()
-            };
-            draw_texture_ex(texture, character.x, character.y, color, params);
-            if let Some(preparation) = enemy.is_preparing() {
-                let attack = add_contour(character, attack_range * meters_to_pixels);
-                let color = Color::new(0.8, 0.4, 0.4, 0.2);
-                let size = attack.h * preparation;
-                draw_rectangle(attack.x, attack.y + attack.h - size, attack.w, size, color);
-            }
-            if enemy.is_attacking() {
-                let attack = add_contour(character, attack_range * meters_to_pixels);
-                draw_rectangle_lines(attack.x, attack.y, attack.w, attack.h, 2.0, BLACK);
-            }
+            draw_enemy(
+                enemy,
+                size,
+                attack_range,
+                &textures,
+                &animator,
+                screen,
+                meters_to_pixels,
+            );
         }
 
-        let character = pos_to_rect(pos, size, screen, meters_to_pixels);
-        // draw_rectangle(character.x, character.y, character.w, character.h, BLUE);
-        let animation = if life > 0 && attacking {
-            &textures.player.attacking
-        } else if life > 0 && movement != Vec2::ZERO {
-            &textures.player.moving
-        } else {
-            &textures.player.idle
-        };
-        let texture = animator.choose_texture(animation);
-        let params = DrawTextureParams {
-            dest_size: Some(character.size()),
-            flip_x: !looking_right,
-            ..Default::default()
-        };
-        let color = if life > 0 { WHITE } else { RED };
-        draw_texture_ex(texture, character.x, character.y, color, params);
+        let character = draw_player(
+            pos,
+            looking_right,
+            life,
+            size,
+            &textures,
+            &animator,
+            screen,
+            meters_to_pixels,
+            movement,
+            attacking,
+        );
 
         if attacking {
             let attack = add_contour(character, attack_range * meters_to_pixels);
             draw_rectangle_lines(attack.x, attack.y, attack.w, attack.h, 2.0, BLACK);
         }
 
-        let size_pixels = size * meters_to_pixels * 0.5;
-        let pad = size_pixels * 0.5;
-        for i in 0..PLAYER_LIFE {
-            let x = pad.x + i as f32 * (pad.x + size_pixels.x);
-            let y = screen.y - size_pixels.y - pad.y;
-            let w = size_pixels.x;
-            let h = size_pixels.y;
-            if i < life {
-                draw_rectangle(x, y, w, h, SKYBLUE);
-            }
-            draw_rectangle_lines(x, y, w, h, 2.0, BLACK);
-        }
+        draw_life(life, size, meters_to_pixels, screen);
 
         next_frame().await;
     }
     Ok(())
+}
+
+fn draw_enemy(
+    enemy: &Enemy,
+    size: Vec2,
+    attack_range: Vec2,
+    textures: &Textures,
+    animator: &Animator,
+    screen: Vec2,
+    meters_to_pixels: f32,
+) {
+    let character = pos_to_rect(enemy.pos, size, screen, meters_to_pixels);
+    let color = if enemy.is_alive() { WHITE } else { RED };
+
+    // draw_rectangle(character.x, character.y, character.w, character.h, color);
+    let texture = animator.choose_texture(&textures.enemies.moving);
+    let params = DrawTextureParams {
+        dest_size: Some(character.size()),
+        ..Default::default()
+    };
+    draw_texture_ex(texture, character.x, character.y, color, params);
+    if let Some(preparation) = enemy.is_preparing() {
+        let attack = add_contour(character, attack_range * meters_to_pixels);
+        let color = Color::new(0.8, 0.4, 0.4, 0.2);
+        let size = attack.h * preparation;
+        draw_rectangle(attack.x, attack.y + attack.h - size, attack.w, size, color);
+    }
+    if enemy.is_attacking() {
+        let attack = add_contour(character, attack_range * meters_to_pixels);
+        draw_rectangle_lines(attack.x, attack.y, attack.w, attack.h, 2.0, BLACK);
+    }
+}
+
+fn draw_player(
+    pos: Vec2,
+    looking_right: bool,
+    life: i32,
+    size: Vec2,
+    textures: &Textures,
+    animator: &Animator,
+    screen: Vec2,
+    meters_to_pixels: f32,
+    movement: Vec2,
+    attacking: bool,
+) -> Rect {
+    let character = pos_to_rect(pos, size, screen, meters_to_pixels);
+    // draw_rectangle(character.x, character.y, character.w, character.h, BLUE);
+    let animation = if life > 0 && attacking {
+        &textures.player.attacking
+    } else if life > 0 && movement != Vec2::ZERO {
+        &textures.player.moving
+    } else {
+        &textures.player.idle
+    };
+    let texture = animator.choose_texture(animation);
+    let params = DrawTextureParams {
+        dest_size: Some(character.size()),
+        flip_x: !looking_right,
+        ..Default::default()
+    };
+    let color = if life > 0 { WHITE } else { RED };
+    draw_texture_ex(texture, character.x, character.y, color, params);
+    character
+}
+
+fn draw_life(life: i32, size: Vec2, meters_to_pixels: f32, screen: Vec2) {
+    let size_pixels = size * meters_to_pixels * 0.5;
+    let pad = size_pixels * 0.5;
+    for i in 0..PLAYER_LIFE {
+        let x = pad.x + i as f32 * (pad.x + size_pixels.x);
+        let y = screen.y - size_pixels.y - pad.y;
+        let w = size_pixels.x;
+        let h = size_pixels.y;
+        if i < life {
+            draw_rectangle(x, y, w, h, SKYBLUE);
+        }
+        draw_rectangle_lines(x, y, w, h, 2.0, BLACK);
+    }
 }
 
 fn text(text: &str, x: f32, y: f32) {
@@ -198,30 +247,4 @@ fn is_in_attack_range(pos_1: Vec2, pos_2: Vec2, size: Vec2, attack_range: Vec2) 
     let range = size.x + attack_range.x;
     let result = diff.length_squared() < range * range;
     result
-}
-
-fn pos_to_rect(pos: Vec2, size: Vec2, screen: Vec2, meters_to_pixels: f32) -> Rect {
-    Rect::new(
-        (pos.x - size.x * 0.5) * meters_to_pixels + screen.x * 0.5,
-        (pos.y - size.y * 0.5) * meters_to_pixels + screen.y * 0.5,
-        size.x * meters_to_pixels,
-        size.y * meters_to_pixels,
-    )
-}
-
-pub fn add_contour(rect: Rect, size: SizeInPixels2d) -> Rect {
-    let mut new_position = rect.point() - size;
-    let mut new_size = rect.size() + size * 2.0;
-    let center = rect.center();
-    for i in 0..1 {
-        if new_size[i] < 0.0 {
-            // size reduced so much that the rect flips. collapse rather than invert
-            new_position[i] = center[i];
-            new_size[i] = 0.0;
-        }
-    }
-    to_rect(new_position, new_size)
-}
-pub fn to_rect(pos: Vec2, size: Vec2) -> Rect {
-    Rect::new(pos.x, pos.y, size.x, size.y)
 }
