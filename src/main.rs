@@ -1,13 +1,12 @@
-use freeing_the_berserk::ui::{build_style, build_ui, Message, State, FONT_SIZE};
 use freeing_the_berserk::enemy::{Enemy, ENEMY_LIFE};
 use freeing_the_berserk::loader::Loader;
 use freeing_the_berserk::player::{hurt, Player, PLAYER_LIFE};
 use freeing_the_berserk::textures::{Animator, Textures};
+use freeing_the_berserk::ui::{build_ui, Message, State};
 use freeing_the_berserk::{add_contour, pixel_to_pos, pos_to_rect, AnyResult};
 use macroquad::miniquad::date::now;
 use macroquad::prelude::*;
 use std::cmp::Ordering;
-
 
 #[macroquad::main(window_conf)]
 async fn main() {
@@ -37,8 +36,6 @@ async fn fallible_main() -> AnyResult<()> {
     let mut enemies = generate_enemies();
     let textures = Textures::load(&mut loader).await?;
     let mut animator = Animator::new();
-    let style = build_style();
-    let screen = vec2(screen_width(), screen_height());
     let mut previous_frame_time = now();
     loop {
         /////////// events
@@ -226,8 +223,6 @@ async fn fallible_main() -> AnyResult<()> {
 
         // draw_life(player.life, size, meters_to_pixels, screen);
 
-        let text_x = screen.x * 0.5;
-        let text_y = screen.y - 2.3 * FONT_SIZE;
         let state = if player.is_alive() {
             if enemies.iter().all(|e| !e.is_alive()) {
                 State::EnemiesDead
@@ -237,10 +232,12 @@ async fn fallible_main() -> AnyResult<()> {
         } else {
             State::PlayerDead
         };
-        let mut ui = build_ui(&style, screen, state);
-        let messages = ui.interact();
-        ui.render();
-        
+        let mut ui = build_ui(screen, state);
+        messages.extend(ui.interact());
+        if state != State::Playing {
+            ui.render();
+        }
+
         if messages.contains(&Message::Restart) {
             enemies = generate_enemies();
             player.life = PLAYER_LIFE;
@@ -415,10 +412,6 @@ fn draw_life(life: i32, size: Vec2, meters_to_pixels: f32, screen: Vec2) {
         }
         draw_rectangle_lines(x, y, w, h, 2.0, BLACK);
     }
-}
-
-fn text(text: &str, x: f32, y: f32) {
-    draw_text(text, x, y, FONT_SIZE, BLACK);
 }
 
 fn is_in_attack_range(pos_1: Vec2, pos_2: Vec2, size: Vec2, attack_range: Vec2) -> bool {

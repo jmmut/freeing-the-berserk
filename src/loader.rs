@@ -1,12 +1,7 @@
-use crate::{add_contour, to_rect, AnyResult};
-use juquad::draw::{draw_rect, draw_rect_lines};
-use juquad::resource_loader::resume;
-use macroquad::color::{Color, BLACK};
-use macroquad::math::{vec2, Vec2};
-use macroquad::prelude::{
-    clear_background, load_texture, next_frame, screen_height, screen_width, Texture2D,
-};
 use crate::ui::render_loading_screen;
+use crate::AnyResult;
+use juquad::resource_loader::resume;
+use macroquad::prelude::{load_texture, Texture2D};
 
 pub struct Loader {
     pub done: i32,
