@@ -305,7 +305,7 @@ fn draw_enemy(
         // draw_rectangle_lines(attack.x, attack.y, attack.w, attack.h, 10.0, BLACK);
     }
     let size_pixels = size * meters_to_pixels * 0.1;
-    let pad = size_pixels * 0.5;
+    // let pad = size_pixels * 0.5;
     let pad = Vec2::ZERO;
     for i in 0..ENEMY_LIFE {
         let x = character.x + character.w * 0.5 - ENEMY_LIFE as f32 * 0.5 * (pad.x + size_pixels.x)
