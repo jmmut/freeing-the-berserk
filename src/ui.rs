@@ -9,6 +9,7 @@ use juquad::lazy::{Margin, Pad};
 use juquad::widgets::anchor::{Horizontal, Layout, Vertical};
 use juquad::widgets::{Coloring, StateColor};
 use macroquad::color::{Color, BLACK};
+use macroquad::input::{is_key_pressed, KeyCode};
 use macroquad::math::{vec2, Vec2};
 use macroquad::prelude::{clear_background, next_frame, screen_height, screen_width};
 
@@ -160,7 +161,10 @@ pub async fn render_loading_screen(done: i32, total: i32) -> bool {
 
     let all_loaded = done == total;
     let mut ui = build_loading_ui(screen, all_loaded);
-    let messages = if all_loaded { ui.interact() } else { vec![] };
+    let mut messages = if all_loaded { ui.interact() } else { vec![] };
+    if all_loaded && is_any_pressed(&[KeyCode::Space, KeyCode::J, KeyCode::Enter]) {
+        messages.push(Message::Restart);
+    }
     ui.render();
 
     draw_rect(rect_progress, HAIR_RED);
@@ -168,4 +172,13 @@ pub async fn render_loading_screen(done: i32, total: i32) -> bool {
     next_frame().await;
     let should_continue = !messages.contains(&Message::Restart);
     should_continue
+}
+
+pub fn is_any_pressed(key_codes: &[KeyCode]) -> bool {
+    for key_code in key_codes {
+        if is_key_pressed(*key_code) {
+            return true;
+        }
+    }
+    false
 }
