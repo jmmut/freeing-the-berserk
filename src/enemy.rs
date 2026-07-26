@@ -2,7 +2,7 @@ use crate::action::Action;
 use crate::player::MAX_ATTACK_DURATION;
 use macroquad::math::Vec2;
 
-pub const ENEMY_LIFE: i32 = 3;
+pub const ENEMY_LIFE: i32 = 20;
 pub const PREPARATION_S: f32 = 0.6;
 
 pub struct Enemy {

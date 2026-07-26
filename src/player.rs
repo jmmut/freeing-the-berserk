@@ -2,7 +2,7 @@ use crate::action::Action;
 use crate::interpolation::Interpolation;
 use macroquad::math::{vec2, Vec2};
 
-pub const PLAYER_LIFE: i32 = 2;
+pub const PLAYER_LIFE: i32 = 6;
 pub const DASH_DURATION: f32 = 0.25;
 pub const MIN_ATTACK_DURATION: f32 = 0.1;
 pub const MAX_ATTACK_DURATION: f32 = 0.2;
@@ -60,11 +60,7 @@ impl Player {
         (PLAYER_LIFE - self.life) as f32 / (PLAYER_LIFE - 1) as f32
     }
     pub fn berserk_index(&self) -> usize {
-        if self.life <= 1 {
-            0
-        } else {
-            1
-        }
+        (self.life -1).max(0) as usize
     }
     pub fn strength(&self) -> i32 {
         PLAYER_LIFE - self.life + 1

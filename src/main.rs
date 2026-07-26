@@ -115,7 +115,7 @@ async fn fallible_main() -> AnyResult<()> {
             let enemy_to_another = enemies[next_i].pos - enemies[i].pos;
             let mut movement = Vec2::ZERO;
             if enemies[i].is_alive() && enemies[i].is_preparing().is_none() && !in_attack_range {
-                movement -= enemy_to_another.normalize() * speed.x * 0.1;
+                movement -= enemy_to_another.normalize() * speed.x * 0.3;
             }
             if enemies[i].is_alive() && enemies[i].is_preparing().is_none() && !in_attack_range {
                 movement += enemy_to_player.normalize() * speed.x * 0.7;
@@ -272,9 +272,9 @@ fn draw_enemy(
     // draw_rectangle(character.x, character.y, character.w, character.h, color);
 
     let animation = if enemy.is_alive() && enemy.is_attacking() {
-        &textures.enemies.attacking
+        &textures.enemies.attack
     } else if enemy.is_alive() {
-        &textures.enemies.moving
+        &textures.enemies.walk
     } else {
         &textures.enemies.idle
     };
@@ -303,6 +303,7 @@ fn draw_enemy(
     }
     let size_pixels = size * meters_to_pixels * 0.1;
     let pad = size_pixels * 0.5;
+    let pad = Vec2::ZERO;
     for i in 0..ENEMY_LIFE {
         let x = character.x + character.w * 0.5 - ENEMY_LIFE as f32 * 0.5 * (pad.x + size_pixels.x)
             + pad.x
@@ -333,11 +334,11 @@ fn draw_player(
     // draw_rectangle(character.x, character.y, character.w, character.h, BLUE);
     let animations = &textures.player[player.berserk_index()];
     let animation = if player.is_alive() && player.is_attacking() {
-        &animations.attacking
+        &animations.attack
     } else if player.is_alive() && player.is_dashing() {
-        &animations.dashing
+        &animations.dash
     } else if player.is_alive() && movement != Vec2::ZERO {
-        &animations.moving
+        &animations.walk
     } else {
         &animations.idle
     };
