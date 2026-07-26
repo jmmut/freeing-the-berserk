@@ -53,7 +53,7 @@ impl Player {
         if let Some(t) = self.dash.ratio() {
             self.pos += movement
                 * (Interpolation::new(1.0, 0.0).at(t))
-                * (1.5 * (1.0 + self.berserk_ratio()));
+                * (0.8 * (1.0 + self.berserk_ratio() * 2.5));
         }
     }
     pub fn berserk_ratio(&self) -> f32 {
