@@ -1,9 +1,9 @@
 pub mod action;
 pub mod enemy;
 pub mod interpolation;
+pub mod loader;
 pub mod player;
 pub mod textures;
-pub mod loader;
 
 use macroquad::math::{Rect, Vec2};
 use std::error::Error;

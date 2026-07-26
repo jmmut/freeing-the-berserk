@@ -1,7 +1,7 @@
+use crate::loader::Loader;
 use crate::AnyResult;
 use macroquad::math::Vec2;
 use macroquad::prelude::Texture2D;
-use crate::loader::Loader;
 
 pub struct Textures {
     pub player: Vec<Animations>,

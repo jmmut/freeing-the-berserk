@@ -1,11 +1,11 @@
 use freeing_the_berserk::enemy::{Enemy, ENEMY_LIFE};
+use freeing_the_berserk::loader::Loader;
 use freeing_the_berserk::player::{hurt, Player, PLAYER_LIFE};
 use freeing_the_berserk::textures::{Animator, Textures};
 use freeing_the_berserk::{add_contour, pixel_to_pos, pos_to_rect, AnyResult};
 use macroquad::miniquad::date::now;
 use macroquad::prelude::*;
 use std::cmp::Ordering;
-use freeing_the_berserk::loader::Loader;
 
 pub const FONT_SIZE: f32 = 16.0;
 
@@ -27,7 +27,7 @@ pub fn window_conf() -> Conf {
 }
 
 async fn fallible_main() -> AnyResult<()> {
-    let mut loader = Loader::new();
+    let mut loader = Loader::new(30).await;
     let map_width_meters = 10.0;
     let mut player = Player::new();
     let size = vec2(1.0, 1.0);
