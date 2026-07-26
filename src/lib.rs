@@ -4,6 +4,7 @@ pub mod interpolation;
 pub mod loader;
 pub mod player;
 pub mod textures;
+pub mod ui;
 
 use macroquad::math::{Rect, Vec2};
 use std::error::Error;

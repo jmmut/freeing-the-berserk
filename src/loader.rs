@@ -6,6 +6,7 @@ use macroquad::math::{vec2, Vec2};
 use macroquad::prelude::{
     clear_background, load_texture, next_frame, screen_height, screen_width, Texture2D,
 };
+use crate::ui::render_loading_screen;
 
 pub struct Loader {
     pub done: i32,
@@ -14,7 +15,7 @@ pub struct Loader {
 
 impl Loader {
     pub async fn new(resources_estimate_count: i32) -> Self {
-        render_loading_screen(0, resources_estimate_count).await;
+        render_loading_screen(0, resources_estimate_count).await; // TODO: take Box<Fn>
         Self {
             done: 0,
             total: resources_estimate_count,
@@ -35,17 +36,4 @@ impl Loader {
             }
         }
     }
-}
-
-pub async fn render_loading_screen(done: i32, total: i32) {
-    let screen = vec2(screen_width(), screen_height());
-    let rect = add_contour(to_rect(Vec2::ZERO, screen), -screen * vec2(0.2, 0.49));
-    let mut rect_progress = rect;
-    rect_progress.w = rect_progress.w * done as f32 / total as f32;
-    clear_background(BLACK);
-    const ARMOR_GREY: Color = Color::from_rgba(120, 120, 120, 255);
-    const HAIR_RED: Color = Color::from_rgba(109, 0, 22, 255);
-    draw_rect(rect_progress, HAIR_RED);
-    draw_rect_lines(rect, 2.0, ARMOR_GREY);
-    next_frame().await;
 }

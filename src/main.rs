@@ -1,3 +1,4 @@
+use freeing_the_berserk::ui::{build_style, build_ui, Message, State, FONT_SIZE};
 use freeing_the_berserk::enemy::{Enemy, ENEMY_LIFE};
 use freeing_the_berserk::loader::Loader;
 use freeing_the_berserk::player::{hurt, Player, PLAYER_LIFE};
@@ -7,7 +8,6 @@ use macroquad::miniquad::date::now;
 use macroquad::prelude::*;
 use std::cmp::Ordering;
 
-pub const FONT_SIZE: f32 = 16.0;
 
 #[macroquad::main(window_conf)]
 async fn main() {
@@ -37,6 +37,8 @@ async fn fallible_main() -> AnyResult<()> {
     let mut enemies = generate_enemies();
     let textures = Textures::load(&mut loader).await?;
     let mut animator = Animator::new();
+    let style = build_style();
+    let screen = vec2(screen_width(), screen_height());
     let mut previous_frame_time = now();
     loop {
         /////////// events
@@ -52,9 +54,9 @@ async fn fallible_main() -> AnyResult<()> {
         if is_key_pressed(KeyCode::Escape) {
             break;
         }
+        let mut messages = Vec::new();
         if is_key_pressed(KeyCode::R) {
-            enemies = generate_enemies();
-            player.life = PLAYER_LIFE;
+            messages.push(Message::Restart);
         }
         let mut movement = Vec2::ZERO;
         if is_key_down(KeyCode::W) || is_key_down(KeyCode::Up) {
@@ -225,13 +227,31 @@ async fn fallible_main() -> AnyResult<()> {
         // draw_life(player.life, size, meters_to_pixels, screen);
 
         let text_x = screen.x * 0.5;
-        let text_y = screen.y - 2.0 * FONT_SIZE;
-        if !player.is_alive() {
-            text("You died. Press R to revive.", text_x, text_y);
+        let text_y = screen.y - 2.3 * FONT_SIZE;
+        let state = if player.is_alive() {
+            if enemies.iter().all(|e| !e.is_alive()) {
+                State::EnemiesDead
+            } else {
+                State::Playing
+            }
+        } else {
+            State::PlayerDead
+        };
+        let mut ui = build_ui(&style, screen, state);
+        let messages = ui.interact();
+        ui.render();
+        
+        if messages.contains(&Message::Restart) {
+            enemies = generate_enemies();
+            player.life = PLAYER_LIFE;
         }
-        if enemies.iter().all(|e| !e.is_alive()) {
-            text("You won. Press R to revive enemies.", text_x, text_y);
-        }
+
+        // if !player.is_alive() {
+        //     text("You died. Press R to revive.", text_x, text_y);
+        // }
+        // if enemies.iter().all(|e| !e.is_alive()) {
+        //     text("You won. Press R to revive enemies.", text_x, text_y);
+        // }
 
         next_frame().await;
     }
