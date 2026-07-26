@@ -27,6 +27,9 @@ pub fn window_conf() -> Conf {
 
 async fn fallible_main() -> AnyResult<()> {
     let mut loader = Loader::new(30).await;
+    let textures = Textures::load(&mut loader).await?;
+    loader.finish().await;
+
     let map_width_meters = 10.0;
     let mut player = Player::new();
     let size = vec2(1.0, 1.0);
@@ -34,7 +37,6 @@ async fn fallible_main() -> AnyResult<()> {
     let attack_range = size * 0.2;
     let speed = vec2(0.03, 0.03);
     let mut enemies = generate_enemies();
-    let textures = Textures::load(&mut loader).await?;
     let mut animator = Animator::new();
     let mut previous_frame_time = now();
     loop {

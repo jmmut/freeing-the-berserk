@@ -31,4 +31,7 @@ impl Loader {
             }
         }
     }
+    pub async fn finish(&self) {
+        while render_loading_screen(self.total, self.total).await {}
+    }
 }

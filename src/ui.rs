@@ -39,13 +39,14 @@ pub enum State {
 }
 
 pub fn build_panel_style() -> Style {
-    let mut style = build_button_style();
+    let mut style = build_button_style(true);
     // style.coloring.at_rest.bg_color = ARMOR_GREY;
     // style.coloring.at_rest.text_color = WOLF_WHITE;
     style.pad.y = style.pad.x;
     style
 }
-pub fn build_button_style() -> Style {
+pub fn build_button_style(enabled: bool) -> Style {
+    let text_color = if enabled { WOLF_WHITE } else { ARMOR_GREY };
     let style = Style {
         font_size: FONT_SIZE,
         layout: Layout::vertical(Vertical::Bottom, Horizontal::Center),
@@ -56,7 +57,7 @@ pub fn build_button_style() -> Style {
         coloring: Coloring {
             at_rest: StateColor {
                 bg_color: HAIR_RED,
-                text_color: WOLF_WHITE,
+                text_color,
                 border_color: ARMOR_GREY,
             },
             hovered: StateColor {
@@ -75,8 +76,23 @@ pub fn build_button_style() -> Style {
     style
 }
 
+pub fn build_loading_style() -> Style {
+    let state_color = StateColor {
+        bg_color: BLACK,
+        text_color: WOLF_WHITE,
+        border_color: BLACK,
+    };
+    let mut style = build_button_style(true);
+    style.coloring = Coloring {
+        at_rest: state_color,
+        hovered: state_color,
+        pressed: state_color,
+    };
+    style
+}
+
 pub fn build_ui(screen: Vec2, state: State) -> Box<dyn RenderableWidget<Message>> {
-    let button_style = build_button_style();
+    let button_style = build_button_style(true);
     let panel_style = build_panel_style();
 
     let mut contents = Vec::new();
@@ -98,13 +114,58 @@ pub fn build_ui(screen: Vec2, state: State) -> Box<dyn RenderableWidget<Message>
     ui
 }
 
-pub async fn render_loading_screen(done: i32, total: i32) {
+pub fn build_loading_ui(screen: Vec2, all_loaded: bool) -> Box<dyn RenderableWidget<Message>> {
+    let button_style = build_button_style(all_loaded);
+    let loading_style = build_loading_style();
+    let mut left_aligned_style = loading_style.clone();
+    left_aligned_style.layout = Layout::vertical(Vertical::Bottom, Horizontal::Left);
+    left_aligned_style.pad = Pad::new(0.0, 0.0);
+
+    let mut title_style = loading_style.clone();
+    title_style.coloring.at_rest.text_color = HAIR_RED;
+    title_style.font_size *= 4.0;
+    title_style.pad = Pad::new(0.0, 40.0);
+
+    let mut ui = Container::new(
+        &loading_style,
+        vec![
+            Text::new(&title_style, "Freeing the Berserk"),
+            Text::new(&loading_style, "Controls"),
+            Container::new(
+                &left_aligned_style,
+                vec![
+                    Text::new(&left_aligned_style, "WASD or keyboard arrows to move"),
+                    Text::new(&left_aligned_style, "Space or J to attack"),
+                    Text::new(&left_aligned_style, "Shift or K to dash"),
+                ],
+            ),
+            Button::new_text(&button_style, Message::Restart, "Play"),
+        ],
+    );
+
+    let layout = Layout::vertical(Vertical::Center, Horizontal::Center);
+    let screen_rect = to_rect(vec2(0.0, 0.0), screen);
+    compute_layout(&mut *ui, screen_rect, layout);
+    ui
+}
+
+/// returns True if the rendering loop should continue in the loading screen.
+pub async fn render_loading_screen(done: i32, total: i32) -> bool {
     let screen = vec2(screen_width(), screen_height());
-    let rect = add_contour(to_rect(Vec2::ZERO, screen), -screen * vec2(0.2, 0.49));
+    let mut rect = add_contour(to_rect(Vec2::ZERO, screen), -screen * vec2(0.2, 0.49));
+    rect.y = screen.y * 0.8;
     let mut rect_progress = rect;
     rect_progress.w = rect_progress.w * done as f32 / total as f32;
     clear_background(BLACK);
+
+    let all_loaded = done == total;
+    let mut ui = build_loading_ui(screen, all_loaded);
+    let messages = if all_loaded { ui.interact() } else { vec![] };
+    ui.render();
+
     draw_rect(rect_progress, HAIR_RED);
     draw_rect_lines(rect, 2.0, ARMOR_GREY);
     next_frame().await;
+    let should_continue = !messages.contains(&Message::Restart);
+    should_continue
 }
