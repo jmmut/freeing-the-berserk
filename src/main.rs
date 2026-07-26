@@ -5,6 +5,7 @@ use freeing_the_berserk::{add_contour, pixel_to_pos, pos_to_rect, AnyResult};
 use macroquad::miniquad::date::now;
 use macroquad::prelude::*;
 use std::cmp::Ordering;
+use freeing_the_berserk::loader::Loader;
 
 pub const FONT_SIZE: f32 = 16.0;
 
@@ -26,6 +27,7 @@ pub fn window_conf() -> Conf {
 }
 
 async fn fallible_main() -> AnyResult<()> {
+    let mut loader = Loader::new();
     let map_width_meters = 10.0;
     let mut player = Player::new();
     let size = vec2(1.0, 1.0);
@@ -33,7 +35,7 @@ async fn fallible_main() -> AnyResult<()> {
     let attack_range = size * 0.2;
     let speed = vec2(0.03, 0.03);
     let mut enemies = generate_enemies();
-    let textures = Textures::load().await?;
+    let textures = Textures::load(&mut loader).await?;
     let mut animator = Animator::new();
     let mut previous_frame_time = now();
     loop {
