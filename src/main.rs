@@ -224,7 +224,11 @@ async fn fallible_main() -> AnyResult<()> {
         // }
 
         // draw_life(player.life, size, meters_to_pixels, screen);
-
+        let params = DrawTextureParams {
+            dest_size: Some(screen),
+            ..Default::default()
+        };
+        draw_texture_ex(&textures.overlay[0], 0.0, 0.0, WHITE, params);
         let state = if player.is_alive() {
             if enemies.iter().all(|e| !e.is_alive()) {
                 State::EnemiesDead
