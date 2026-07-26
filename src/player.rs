@@ -60,7 +60,7 @@ impl Player {
         (PLAYER_LIFE - self.life) as f32 / (PLAYER_LIFE - 1) as f32
     }
     pub fn berserk_index(&self) -> usize {
-        (self.life -1).max(0) as usize
+        (self.life - 1).max(0) as usize
     }
     pub fn strength(&self) -> i32 {
         PLAYER_LIFE - self.life + 1
@@ -91,7 +91,7 @@ mod tests {
     fn test_attack_berserk_duration() {
         let mut player = Player::new();
         assert_eq!(player.attack.duration(), MAX_ATTACK_DURATION);
-        hurt(&mut player.life, 1);
+        hurt(&mut player.life, PLAYER_LIFE - 1);
         player.tick(0.016);
         assert_eq!(player.attack.duration(), MIN_ATTACK_DURATION);
     }
