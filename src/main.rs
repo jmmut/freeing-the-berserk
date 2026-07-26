@@ -32,14 +32,7 @@ async fn fallible_main() -> AnyResult<()> {
     let border_meters = vec2(1.2, 0.7);
     let attack_range = size * 0.2;
     let speed = vec2(0.03, 0.03);
-    let mut enemies = vec![
-        Enemy::new(vec2(-5.0, -1.0)),
-        Enemy::new(vec2(-2.0, -3.0)),
-        Enemy::new(vec2(3.0, 1.0)),
-        Enemy::new(vec2(10.0, -3.0)),
-        Enemy::new(vec2(19.0, 3.0)),
-        Enemy::new(vec2(15.0, -3.0)),
-    ];
+    let mut enemies = generate_enemies();
     let textures = Textures::load().await?;
     let mut animator = Animator::new();
     let mut previous_frame_time = now();
@@ -58,9 +51,7 @@ async fn fallible_main() -> AnyResult<()> {
             break;
         }
         if is_key_pressed(KeyCode::R) {
-            for enemy in &mut enemies {
-                enemy.life = ENEMY_LIFE;
-            }
+            enemies = generate_enemies();
             player.life = PLAYER_LIFE;
         }
         let mut movement = Vec2::ZERO;
@@ -243,6 +234,17 @@ async fn fallible_main() -> AnyResult<()> {
         next_frame().await;
     }
     Ok(())
+}
+
+fn generate_enemies() -> Vec<Enemy> {
+    vec![
+        Enemy::new(vec2(-5.0, -1.0)),
+        Enemy::new(vec2(-2.0, -3.0)),
+        Enemy::new(vec2(3.0, 1.0)),
+        Enemy::new(vec2(10.0, -3.0)),
+        Enemy::new(vec2(19.0, 3.0)),
+        Enemy::new(vec2(15.0, -3.0)),
+    ]
 }
 
 fn maybe_flip(speed: Vec2, movement: Vec2, looking_right: &mut bool) {

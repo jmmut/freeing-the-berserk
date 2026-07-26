@@ -9,11 +9,11 @@ edition = "2021"
 #macroquad = "=0.4.15"
 ## 0.4.15 uses a non-working miniquad version
 macroquad = { git = "https://github.com/not-fl3/macroquad.git", rev = "92279a746405949138616714918fc0f120171352" }
-#juquad = { git = "https://github.com/jmmut/juquad.git", tag = "0.20.0" }
+juquad = { git = "https://github.com/jmmut/juquad.git", tag = "0.20.0" }
 
-#[patch.crates-io]
-## needed if using juquad
-#macroquad = { git = "https://github.com/not-fl3/macroquad.git", rev = "92279a746405949138616714918fc0f120171352" }
+[patch.crates-io]
+# needed if using juquad
+macroquad = { git = "https://github.com/not-fl3/macroquad.git", rev = "92279a746405949138616714918fc0f120171352" }
 
 [profile.release]
 strip = true
