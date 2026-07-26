@@ -36,6 +36,9 @@ async fn fallible_main() -> AnyResult<()> {
         Enemy::new(vec2(-5.0, -1.0)),
         Enemy::new(vec2(-2.0, -3.0)),
         Enemy::new(vec2(3.0, 1.0)),
+        Enemy::new(vec2(10.0, -3.0)),
+        Enemy::new(vec2(19.0, 3.0)),
+        Enemy::new(vec2(15.0, -3.0)),
     ];
     let textures = Textures::load().await?;
     let mut animator = Animator::new();

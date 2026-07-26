@@ -9,6 +9,6 @@ Clone this repo, then [Install rust](https://www.rust-lang.org/tools/install), t
 - [/] make enemies avoid each other to avoid collapsing in the same position.
 - [ ] parry
 - [ ] loading screen
-- [ ] 6 levels of armor
+- [x] 6 levels of armor
 - [ ] tint enemies
-- [ ] more waves (finite or infinite?)
+- [x] more waves (finite or infinite?)
